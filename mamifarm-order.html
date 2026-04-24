@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>마미팜 고기발주</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+    }
+
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .header {
+      background: #7a1f1f;
+      color: #fff;
+      padding: 24px 18px;
+      border-radius: 16px;
+      text-align: center;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .header p {
+      margin: 8px 0 0;
+      font-size: 15px;
+      opacity: 0.9;
+    }
+
+    .box {
+      background: #fff;
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    label {
+      font-weight: 800;
+      display: block;
+      margin-bottom: 7px;
+      font-size: 15px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+      margin-bottom: 16px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 160px;
+    }
+
+    .store-fixed {
+      padding: 14px;
+      background: #fafafa;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .item {
+      display: grid;
+      grid-template-columns: 1fr 100px;
+      gap: 10px;
+      align-items: center;
+      padding: 13px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .item:last-child {
+      border-bottom: none;
+    }
+
+    .item-name {
+      font-size: 15px;
+      line-height: 1.4;
+      font-weight: 700;
+    }
+
+    .unit {
+      font-size: 13px;
+      color: #777;
+      margin-top: 4px;
+    }
+
+    .qty-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .qty-box input {
+      margin: 0;
+      text-align: center;
+      padding: 11px 6px;
+    }
+
+    .unit-label {
+      font-size: 15px;
+      font-weight: 800;
+      color: #7a1f1f;
+      min-width: 26px;
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 14px;
+      background: #7a1f1f;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .copy-btn { background: #333; }
+    .reset-btn { background: #777; }
+    .save-btn {
+      margin-top: 10px;
+      background: #111;
+    }
+
+    #preview {
+      white-space: pre-line;
+      background: #fafafa;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 15px;
+      font-size: 15px;
+      line-height: 1.7;
+      min-height: 160px;
+    }
+
+    .notice {
+      text-align: center;
+      color: #777;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 480px) {
+      .wrap { padding: 12px; }
+      .header h1 { font-size: 24px; }
+      .item { grid-template-columns: 1fr 90px; }
+      .btn-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <div class="header">
+      <h1>마미팜 고기발주</h1>
+      <p>계란은 판 단위, 고기류는 kg 단위로 입력해 주세요.</p>
+    </div>
+
+    <div class="box">
+      <label>매장명</label>
+      <div class="store-fixed">한국의집 롯데월드점</div>
+    </div>
+
+    <div class="box" id="orderList"></div>
+
+    <div class="box">
+      <label for="orderDate">발주일</label>
+      <input type="date" id="orderDate" />
+
+      <label for="memo">비고</label>
+      <textarea id="memo" placeholder="요청사항이 있으면 입력해 주세요."></textarea>
+    </div>
+
+    <div class="box">
+      <label>발주문 미리보기</label>
+      <div id="preview">발주문 생성 버튼을 누르면 여기에 발주 내용이 표시됩니다.</div>
+
+      <div class="btn-row">
+        <button onclick="createOrderText()">발주문 생성</button>
+        <button class="copy-btn" onclick="copyOrderText()">발주문 복사</button>
+      </div>
+
+      <div class="btn-row">
+        <button class="reset-btn" onclick="resetOrder()">발주문 초기화</button>
+        <button class="save-btn" onclick="submitOrder()">시트저장 + 문자전송</button>
+      </div>
+    </div>
+
+    <div class="notice">
+      발주 수량이 없는 품목은 자동으로 제외됩니다.
+    </div>
+
+  </div>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo0S7K00TkjoZhs0MGln7sEXm803oNZa_uxkLxePCSfNbx7ZaCTA6XgrKUsK1HvXEw/exec";
+
+    const STORE_NAME = "한국의집 롯데월드점";
+
+    const products = [
+      { name: "계란(특란60g~68g 국내산)", unit: "판" },
+      { name: "닭다리살(브라질산 냉동)", unit: "kg" },
+      { name: "돼지목전지 [3mm 6등분(5kg 진공포장)]", unit: "kg" },
+      { name: "돼지삼겹살 [1.5cm*1.5cm*5cm(5kg 진공포장)]", unit: "kg" },
+      { name: "소목심 GF 호주산 냉동 [불고기용 1.5mm*4cm*7cm(2kg 실링포장)]", unit: "kg" },
+      { name: "소우둔 S 호주산 냉동 [육회용 5mm(1kg 실링포장)]", unit: "kg" },
+      { name: "소전각 [다짐육 8mm(3kg 실링포장)]", unit: "kg" },
+      { name: "소차돌양지 S [2mm(1kg 실링포장)]", unit: "kg" }
+    ];
+
+    const orderList = document.getElementById("orderList");
+
+    products.forEach((item, index) => {
+      const div = document.createElement("div");
+      div.className = "item";
+
+      div.innerHTML = `
+        <div>
+          <div class="item-name">${item.name}</div>
+          <div class="unit">단위: ${item.unit}</div>
+        </div>
+        <div class="qty-box">
+          <input type="number" id="qty-${index}" min="0" step="0.1" placeholder="0">
+          <span class="unit-label">${item.unit}</span>
+        </div>
+      `;
+
+      orderList.appendChild(div);
+    });
+
+    function setTodayDate() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, "0");
+      const dd = String(today.getDate()).padStart(2, "0");
+      document.getElementById("orderDate").value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    setTodayDate();
+
+    function getOrderItems() {
+      const orderItems = [];
+
+      products.forEach((item, index) => {
+        const qty = document.getElementById(`qty-${index}`).value;
+
+        if (qty && Number(qty) > 0) {
+          orderItems.push({
+            productName: item.name,
+            quantity: qty,
+            unit: item.unit
+          });
+        }
+      });
+
+      return orderItems;
+    }
+
+    function createOrderText() {
+      const orderDate = document.getElementById("orderDate").value;
+      const memo = document.getElementById("memo").value.trim();
+      const orderItems = getOrderItems();
+
+      if (!orderDate) {
+        alert("발주일을 선택해 주세요.");
+        return "";
+      }
+
+      if (orderItems.length === 0) {
+        alert("발주 수량을 하나 이상 입력해 주세요.");
+        return "";
+      }
+
+      let text = "";
+      text += "[마미팜 고기발주]\n";
+      text += `매장명: ${STORE_NAME}\n`;
+      text += `발주일: ${orderDate}\n\n`;
+      text += "■ 발주 내역\n";
+
+      orderItems.forEach((item, i) => {
+        text += `${i + 1}. ${item.productName} - ${item.quantity}${item.unit}\n`;
+      });
+
+      if (memo) {
+        text += `\n■ 비고\n${memo}\n`;
+      }
+
+      document.getElementById("preview").innerText = text;
+      return text;
+    }
+
+    function copyOrderText() {
+      const text = createOrderText();
+      if (!text) return;
+
+      navigator.clipboard.writeText(text)
+        .then(() => alert("발주문이 복사되었습니다."))
+        .catch(() => alert("복사가 안 될 경우, 미리보기 내용을 직접 복사해 주세요."));
+    }
+
+    function resetOrder() {
+      products.forEach((item, index) => {
+        document.getElementById(`qty-${index}`).value = "";
+      });
+
+      document.getElementById("memo").value = "";
+      document.getElementById("preview").innerText =
+        "발주문 생성 버튼을 누르면 여기에 발주 내용이 표시됩니다.";
+
+      setTodayDate();
+
+      alert("발주문이 초기화되었습니다.");
+    }
+
+    function submitOrder() {
+      const orderDate = document.getElementById("orderDate").value;
+      const memo = document.getElementById("memo").value.trim();
+      const orderItems = getOrderItems();
+
+      if (!orderDate) {
+        alert("발주일을 선택해 주세요.");
+        return;
+      }
+
+      if (orderItems.length === 0) {
+        alert("발주 수량을 하나 이상 입력해 주세요.");
+        return;
+      }
+
+      const orderText = createOrderText();
+
+      const orderData = {
+        vendor: "마미팜",
+        title: "마미팜 고기발주",
+        storeName: STORE_NAME,
+        orderDate,
+        memo,
+        orderText,
+        smsRequested: true,
+        items: orderItems
+      };
+
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(orderData)
+      });
+
+      alert("시트 저장 및 문자전송 요청이 완료되었습니다.");
+      resetOrder();
+    }
+  </script>
+</body>
+</html>
